@@ -1,32 +1,7 @@
-import { GoogleGenAI, Type } from "@google/genai";
-
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-
 export interface ClassificationResult {
   label: "Spam" | "Not Spam";
   reason: string;
 }
-
-const SYSTEM_INSTRUCTION = `You are an email classification system.
-Your task is to classify the given email as either:
-1. Spam
-2. Not Spam
-
-Rules:
-- If the email contains words like "win", "free", "lottery", "offer", "urgent", "prize", "money", classify it as Spam.
-- If the email looks like normal communication (meetings, work, personal messages), classify it as Not Spam.
-- Be simple and consistent.
-
-Format your response as a JSON object with two fields:
-- label: "Spam" | "Not Spam"
-- reason: a short explanation
-
-Examples:
-Email: "You have won a free lottery! Claim now"
-Response: {"label": "Spam", "reason": "Contains spam keywords like 'won', 'free', 'lottery'"}
-
-Email: "Let's have a meeting tomorrow at 10 AM"
-Response: {"label": "Not Spam", "reason": "Normal professional communication"}`;
 
 export async function classifyEmail(emailContent: string): Promise<ClassificationResult> {
   if (!emailContent.trim()) {
@@ -34,34 +9,22 @@ export async function classifyEmail(emailContent: string): Promise<Classificatio
   }
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: `Classify this email:\n\n${emailContent}`,
-      config: {
-        systemInstruction: SYSTEM_INSTRUCTION,
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            label: {
-              type: Type.STRING,
-              description: "Whether the email is Spam or Not Spam",
-              enum: ["Spam", "Not Spam"]
-            },
-            reason: {
-              type: Type.STRING,
-              description: "Short explanation for the classification"
-            }
-          },
-          required: ["label", "reason"]
-        }
-      }
+    const response = await fetch("/api/classify", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ emailContent }),
     });
 
-    const text = response.text.trim();
-    return JSON.parse(text) as ClassificationResult;
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Failed to classify email.");
+    }
+
+    return await response.json();
   } catch (error) {
-    console.error("Gemini classification error:", error);
-    throw new Error("Failed to classify email. Please try again later.");
+    console.error("Classification error:", error);
+    throw error instanceof Error ? error : new Error("Failed to classify email. Please try again later.");
   }
 }

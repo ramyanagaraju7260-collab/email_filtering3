@@ -1,6 +1,6 @@
 {
   "name": "MailShield AI",
-  "description": "Professional email classification system powered by Gemini AI. Distinguish between spam and legitimate communications with clear reasoning.",
+  "description": "Professional email classification system powered by Groq AI. Distinguish between spam and legitimate communications with clear reasoning.",
   "requestFramePermissions": [],
   "majorCapabilities": []
 }

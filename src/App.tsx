@@ -279,7 +279,7 @@ export default function App() {
       </main>
 
       <footer className="mt-20 py-8 border-t border-gray-100 w-full max-w-5xl text-center text-gray-400 text-sm">
-        <p>© 2026 MailShield AI • Built with Gemini 3 Flash</p>
+        <p>© 2026 MailShield AI • Built with Groq AI</p>
       </footer>
     </div>
   );
